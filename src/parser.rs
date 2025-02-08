@@ -5,7 +5,7 @@ use nom::combinator::map_res;
 use nom::error::Error;
 use nom::multi::{many0, many1};
 use nom::sequence::{delimited, pair, terminated};
-use nom::IResult;
+use nom::{IResult, Parser as _};
 
 //Logical representation of markdown elements.
 #[derive(Debug, PartialEq, Eq)]
@@ -30,7 +30,7 @@ impl Parser {
 
         if !new_contents.ends_with("\n") {
             println!("contents does not end with \\n");
-            new_contents.push_str("\n");
+            new_contents.push('\n');
         }
 
         Self { contents }
@@ -75,10 +75,10 @@ impl Parser {
                     },
                 ),
             )),
-        )(self.contents.as_str())
+        ).parse(self.contents.as_str())
         .unwrap();
 
-        return elements;
+        elements
     }
 
     fn headings(input: &str) -> IResult<&str, Element> {
@@ -95,13 +95,13 @@ impl Parser {
                     text: text.trim().to_owned(),
                 })
             },
-        )(input)
+        ).parse(input)
     }
 
     fn divider(input: &str) -> IResult<&str, Element> {
         map_res(tag("---\n"), |_| -> Result<Element, Error<&str>> {
             Ok(Element::Divider)
-        })(input)
+        }).parse(input)
     }
 
     fn blockquote(input: &str) -> IResult<&str, Element> {
@@ -116,7 +116,7 @@ impl Parser {
 
                 Ok(Element::Blockquote { text })
             },
-        )(input)
+        ).parse(input)
     }
 
     fn bold(input: &str) -> IResult<&str, Element> {
@@ -127,7 +127,7 @@ impl Parser {
                     text: text.to_owned(),
                 })
             },
-        )(input)
+        ).parse(input)
     }
 
     fn italics(input: &str) -> IResult<&str, Element> {
@@ -138,7 +138,7 @@ impl Parser {
                     text: text.to_owned(),
                 })
             },
-        )(input)
+        ).parse(input)
     }
 
     fn inline_code(input: &str) -> IResult<&str, Element> {
@@ -149,7 +149,7 @@ impl Parser {
                     text: text.to_owned(),
                 })
             },
-        )(input)
+        ).parse(input)
     }
 
     fn strikethrough(input: &str) -> IResult<&str, Element> {
@@ -160,11 +160,11 @@ impl Parser {
                     text: text.to_owned(),
                 })
             },
-        )(input)
+        ).parse(input)
     }
 
     fn plain_text(input: &str) -> IResult<&str, &str> {
-        is_not("*`~\n\r")(input)
+        is_not("*`~\n\r").parse(input)
     }
 }
 

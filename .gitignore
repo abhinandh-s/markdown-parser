@@ -1,1 +1,4 @@
 /target
+flake.lock
+flake.nix
+rust-toolchain.toml
